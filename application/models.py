@@ -1,5 +1,4 @@
 from .database import db
-
 # usermixin is used for methods/ api that can be applied in model
 
 class User(db.Model, UserMixin):
