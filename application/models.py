@@ -1,4 +1,5 @@
 from .database import db
+from flask_security import UserMixin, RoleMixin
 # usermixin is used for methods/ api that can be applied in model
 
 class User(db.Model, UserMixin):
@@ -16,7 +17,7 @@ class Role(db.Model, RoleMixin):
     name = db.Column(db.String, unique = True, nullable =False)
     description = db.Column(db.String)
 
-class UserRole(db.Model):
+class UserRoles(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
