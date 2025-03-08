@@ -21,3 +21,24 @@ class UserRoles(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
+
+class Subject(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String, unique= True, nullable = False) 
+    description = db.Column(db.String)
+    chapters = db.relationship('Chapter', backref ='bearer')
+
+class Chapter(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String, unique= True, nullable = False) 
+    description = db.Column(db.String)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable = False)
+    quizzes = db.relationship('Quiz', backref ='bearer')
+
+
+class Quiz(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String, unique= True, nullable = False) 
+    remarks = db.Column(db.String)
+    chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id'), nullable = False)
+    date = db.Column(db.String,nullable = False)

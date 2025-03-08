@@ -18,3 +18,6 @@ def user_home():
             'email': user.email,
             'password': user.password
     })
+
+
+@app.route('/api/register')
