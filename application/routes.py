@@ -37,3 +37,4 @@ def create_user():
     return jsonify({
         "message":"User already exists!!!"
     }), 400
+
