@@ -11,9 +11,10 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String, unique= True, nullable = False)
     password = db.Column(db.String, nullable = False)
     fs_uniquifier = db.Column(db.String, unique = True)
+    qualification = db.Column(db.String)
+    dob = db.Column(db.String)
     active = db.Column(db.Boolean, nullable = False)
     roles = db.relationship('Role', backref = 'bearer', secondary = 'user_roles')
-    subjects = db.relationship('Subject', backref = 'bearer', secondary = 'user_subject')
 
 class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer, primary_key = True)
@@ -25,33 +26,27 @@ class UserRoles(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
 
-class UserSubject(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'))
-
 class Subject(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String, unique= True, nullable = False) 
     description = db.Column(db.String)
-    chapters = db.relationship('Chapter', backref ='bearer')
+    chapters = db.relationship('Chapter', backref ='bearer',cascade='all, delete-orphan')
 
 class Chapter(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String, unique= True, nullable = False) 
     description = db.Column(db.String)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable = False)
-    quizzes = db.relationship('Quiz', backref ='bearer')
+    quizzes = db.relationship('Quiz', backref ='bearer',cascade='all, delete-orphan')
 
 
 class Quiz(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    name = db.Column(db.String, unique= True, nullable = False) 
+    id = db.Column(db.Integer, primary_key = True) 
     remarks = db.Column(db.String)
     chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id'), nullable = False)
     date = db.Column(db.DateTime)
-    time = db.Column(db.Time)
-    questions = db.relationship('Question', backref ='bearer')
+    time = db.Column(db.Integer)
+    questions = db.relationship('Question', backref ='bearer',cascade='all, delete-orphan')
 
 
 class Question(db.Model):
@@ -59,6 +54,8 @@ class Question(db.Model):
     question = db.Column(db.String, nullable = False)
     A = db.Column(db.String, nullable = False)
     B = db.Column(db.String, nullable = False)
+    C = db.Column(db.String, nullable = False)
+    D = db.Column(db.String, nullable = False)
     answer = db.Column(db.String, nullable = False)
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable = False)
 
@@ -67,4 +64,4 @@ class Score(db.Model):
     score = db.Column(db.Integer)
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable = False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
-    time_of_attempt = db.Column(db.DateTime)
+    time_of_attempt = db.Column(db.DateTime, default=datetime.utcnow)

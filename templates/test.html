@@ -1,0 +1,193 @@
+<div Class ="row">
+    <div Class = "col" style="height:750px;">
+        <div Class ="border mx-auto mt-5" style="height:400px;width: 300;">
+            Login Page
+        </div>
+    </div>
+</div>
+
+
+<div>
+    <h2 class="text-center">Login</h2>
+    <div>
+        <label for ="email">Enter Email:</label>
+        <input type ="text" id="email" v-model="email">
+    </div>
+    <div>
+        <label for ="pass">Enter Password:</label>
+        <input type ="password" id="pass" v-model="password">
+    </div>
+    <div>
+        <button class="btn btn-primary" @click="loginUser">Login</button>
+    </div>
+
+</div>
+
+
+<div Class ="row border">
+    <div Class = "col">
+            <div class="text-center">
+                <h2 class="text-center">Login</h2>
+                <h2 class="text-danger">{{message}}</h2>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Enter Email:</label>
+                        <input type="email" class="form-control" id="email" v-model="formData.email" placeholder="name@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label for="pass" class="form-label">Enter Password</label>
+                        <input type="password" class="form-control" id="pass" v-model="formData.password">
+                    </div>
+                
+                <div 
+                    <button class="btn btn-primary" @click="loginUser">Login</button>
+                    <button><router-link to='/register'>New User?</router-link></button>
+                </div>
+
+            </div>
+    </div>
+</div>
+
+
+
+<div v-for ="for q in quizzes" class="card">
+    <div class="container text-center">
+        <div class="row align-items-start">
+          <div class="col">
+            Id
+          </div>
+          <div class="col">
+            Date
+          </div>
+          <div class="col">
+            Duration
+          </div>
+          <div class="col">
+            Action
+          </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div style="height:700px;">
+    <h2> Welcome {{userData.username}}</h2>
+    <div class="container text-center">
+        <div>
+            Quizzes
+        </div>
+        <div class="row align-items-start">
+            <div class="col">
+                Id
+            </div>
+            <div class="col">
+                Date
+            </div>
+            <div class="col">
+                Duration
+            </div>
+            <div class="col">
+                Action
+            </div>
+        </div>
+    </div>
+    <div v-for="q in quizzes">
+        <div class="row align-items-start">
+            <div class="col">
+                Id
+            </div>
+            <div class="col">
+                Date
+            </div>
+            <div class="col">
+                Duration
+            </div>
+            <div class="col">
+                Action
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <div class="mb-3">
+        <label for="id" class="form-label">Id</label>
+        <input type="text" class="form-control" id="id" readonly value={{quizdata.id}}>
+    </div>
+    <div class="mb-3">
+        <label for="Subject" class="form-label">Subject</label>
+        <input type="text" class="form-control" id="Subject" readonly value={{quizdata.id}}>
+    </div>
+    <div class="mb-3">
+        <label for="Chapter" class="form-label">Chapter</label>
+        <input type="text" class="form-control" id="Chapter" readonly value={{quizdata.id}}>
+    </div>
+    <div class="mb-3">
+        <label for="ques" class="form-label">No. of question</label>
+        <input type="text" class="form-control" id="ques" readonly value={{quizdata.id}}>
+    </div>
+    <div class="mb-3">
+        <label for="Date" class="form-label">Date</label>
+        <input type="date" class="form-control" id="Date" readonly value={{quizdata.id}}>
+    </div>
+    <div class="mb-3">
+        <label for="Duration" class="form-label">Duration</label>
+        <input type="time" class="form-control" id="Duration" readonly value={{quizdata.id}}>
+    </div>
+</div>
+
+<div class ="mb-3">
+    <label for="Question" class="form-label">question</label>
+    <select class ="form-select" aria-label="Default select example" v-model="question">
+
+    </select>
+</div>
+
+
+
+<div class="form-check">
+    <input class="A" type="radio" name="A" id="A">
+    <label class="A" for="A">
+      Default radio
+    </label>
+</div>
+<div class="form-check">
+    <input class="B" type="radio" name="B" id="B">
+    <label class="B" for="B">
+      Default radio
+    </label>
+</div>
+<div class="form-check">
+    <input class="C" type="radio" name="C" id="C">
+    <label class="C" for="C">
+      Default radio
+    </label>
+</div>
+<div class="form-check">
+    <input class="D" type="radio" name="D" id="D">
+    <label class="D" for="D">
+      Default radio
+    </label>
+</div>
+
+<div v-if="!isquiz_done && currentQuestion">
+    <p>Time Left: {{minutes}}:{{seconds}}</p>
+    <form v-on:submit.prevent="submitAnswer">
+        <fieldset>
+            <legend>{{currentQuestion.question}}</legend>
+            <div v-for="opt in ['A','B','C','D']":key ="opt">
+                <input type ="radio" :id="opt" name ="option":value="currentQuestion[opt] v-model= "selected">
+                <label :for="opt">{{currentQuestion[opt]}}</label>
+            </div>
+            <button type="submit">submit</button>
+        </fieldset>
+    </form>
+</div>
+
+        <div border-bottom:3px> <h3>Quiz Details</h3></div>
+        <p><strong>Id:</strong> {{ quizdata.id }}</p>
+        <p><strong>Remarks:</strong> {{ quizdata.remarks }}</p>
+        <p><strong>Date:</strong> {{ quizdata.date }}</p>
+        <p><strong>Duration:</strong> {{ quizdata.time }} min</p>
+        <p><strong>No. of Ques:</strong>"number_of_ques"</p>
