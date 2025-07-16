@@ -418,3 +418,29 @@ class ScoreApi(Resource):
             },400
 
 api.add_resource(ScoreApi, '/api/score/post/<int:quiz_id>')
+
+class ScoreviewApi(Resource):
+    @auth_required('token')
+    @roles_accepted('user','admin')
+    def get(self,user_id):
+        scores = Score.query.filter_by(user_id=user_id).all()
+        all_scores =[]
+        for score in scores:
+            quiz_id = score.quiz_id
+            quiz = Quiz.query.get(quiz_id)
+            chapter_name = quiz.bearer.name
+            chap = Chapter.query.filter_by(name=chapter_name).first()
+            subject_name = chap.bearer.name
+            all_scores.append({
+                'id':score.id,
+                'quiz_id':score.quiz_id,
+                'user_id':score.user_id,
+                'score':score.score,
+                'time_of_attempt':score.time_of_attempt.strftime('%Y-%m-%d %H:%M'),
+                'chapter':chapter_name,
+                'subject': subject_name
+            })
+        return all_scores
+api.add_resource(ScoreviewApi, '/api/scoreview/get/<int:user_id>')
+
+

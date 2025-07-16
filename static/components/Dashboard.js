@@ -2,6 +2,7 @@ export default{
     template:`
     <div class ="row">
         <h2> Welcome {{userData.username}}</h2>
+        <router-link :to="{name:'scores', params: {id: userData.id}}" class="btn btn-outline-danger">Scores</router-link>
         <div class ="col-7 border" style="height:700px;">
             
             <div class="container text-center">
@@ -41,24 +42,26 @@ export default{
                         {{q.time}} min
                     </div>
                     <div class="col">
-                        <button @click="Quiz_detail(q.id)">view</button>
-                        <button @click = "Question_attempt(q.id)">Start</button>
+                        <button type="button" class="btn btn-outline-info" @click="Quiz_detail(q.id)">view</button>
+                        <button type="button" class="btn btn-outline-success" @click = "Question_attempt(q.id)">Start</button>
                     </div>
                 </div>
             </div>
         </div>
-        <div  class ="col-5 border" style = "height:700px;">
+        <div class ="col-5 border" style = "height:700px;">
             <div v-if="showdetails && quizdata">
-                <h3>Quiz Details</h3>
+                <h3 style="text-align:center;">Quiz Details</h3>
                 <p><strong>Id:</strong> {{ quizdata.id }}</p>
+                <p><strong>Subject:</strong> {{ quizdata.subject_name }}</p>
+                <p><strong>Chapter:</strong> {{ quizdata.chapter_name }}</p>
                 <p><strong>Remarks:</strong> {{ quizdata.remarks }}</p>
                 <p><strong>Date:</strong> {{ quizdata.date }}</p>
                 <p><strong>Duration:</strong> {{ quizdata.time }} min</p>
                 <p><strong>No. of Ques:</strong>{{number_of_ques}}</p>
             </div>
-            <div v-if="questions && !isQuizDone"><h2>Quiz Start</h2>
+            <div v-if="questions && !isQuizDone"><h2 style="text-align:center;">Quiz Started</h2>
                 
-                    <p>Time Left: {{minutes}}:{{seconds}}</p>
+                    <p style="text-align:right;">Time Left: {{minutes}}:{{seconds}}</p>
                     <form @submit.prevent="submitAnswer">
                         <fieldset>
                             <legend>{{currentQuestion.question}}</legend>
@@ -66,13 +69,15 @@ export default{
                                 <input type="radio" :id="opt" name="option" :value="currentQuestion[opt]" v-model="selected" />
                                 <label :for="opt">{{currentQuestion[opt]}}</label>
                             </div>
-                            <button type="submit">submit</button>
+                            <div style="text-align:right;">
+                                <button type="submit" class="btn btn-outline-dark">submit</button>
+                            </div>
                         </fieldset>
                     </form>
                 
             </div>
             <div v-if="isQuizDone">
-                <h2>Quiz completed, score:{{score}}</h2>
+                <h2>Quiz completed, Your score is :{{score}}</h2>
             </div>
         </div>
     </div>

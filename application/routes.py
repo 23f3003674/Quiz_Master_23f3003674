@@ -24,7 +24,8 @@ def user_home():
     return jsonify({
             'username': user.username,
             'email': user.email,
-            'password': user.password
+            'password': user.password,
+            'id':user.id
     })
 
 @app.route('/api/login', methods = ['POST'])

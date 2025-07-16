@@ -4,12 +4,14 @@ import Register from './components/Register.js'
 import Navbar from './components/Navbar.js'
 import Footer from './components/Footer.js'
 import Dashboard from './components/Dashboard.js'
+import Scores from './components/Scores.js'
 
 const routes =[
     {path: '/',component: Home},
     {path: '/login',component: Login},
     {path: '/register',component: Register},
-    {path: '/Dashboard',component: Dashboard}
+    {path: '/Dashboard',component: Dashboard},
+    {path: '/scores/:id', name:'scores',component:Scores}
 ]
 
 const router = new VueRouter({
