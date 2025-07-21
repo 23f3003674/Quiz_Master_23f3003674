@@ -3,15 +3,21 @@ import Login from './components/Login.js'
 import Register from './components/Register.js'
 import Navbar from './components/Navbar.js'
 import Footer from './components/Footer.js'
-import Dashboard from './components/Dashboard.js'
+import User_Dashboard from './components/User_Dashboard.js'
+import Admin_Dashboard from './components/Admin_Dashboard.js'
 import Scores from './components/Scores.js'
+import Admin_Quiz_dashboard from './components/Admin_Quiz_dashboard.js'
+
 
 const routes =[
     {path: '/',component: Home},
     {path: '/login',component: Login},
     {path: '/register',component: Register},
-    {path: '/Dashboard',component: Dashboard},
-    {path: '/scores/:id', name:'scores',component:Scores}
+    {path: '/User_Dashboard',component: User_Dashboard},
+    {path: '/Admin_Dashboard',component: Admin_Dashboard},
+    {path: '/scores/:id', name:'scores',component:Scores},
+    {path: '/Admin_Quiz_dashboard',component: Admin_Quiz_dashboard}
+
 ]
 
 const router = new VueRouter({

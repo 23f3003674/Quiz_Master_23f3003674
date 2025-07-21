@@ -3,13 +3,9 @@ from .models import *
 from flask_security import auth_required, roles_required,roles_accepted, current_user
 from datetime import datetime,timedelta
 from flask import jsonify
-api = Api()
+from .utils import roles_list
 
-def roles_list(roles):
-    role_list =[]
-    for role in roles:
-        role_list.append(role.name)
-    return role_list
+api = Api()
 
 parser = reqparse.RequestParser()
 parser.add_argument('name')
@@ -17,8 +13,8 @@ parser.add_argument('description')
 parser.add_argument('subject_id')
 parser.add_argument('chapter_id')
 parser.add_argument('remarks')
-parser.add_argument('date')
-parser.add_argument('time')
+parser.add_argument('date', type=str, required=False)
+parser.add_argument('time', type=str, required=False)
 parser.add_argument('question')
 parser.add_argument('answer')
 parser.add_argument('A')
@@ -45,7 +41,7 @@ class SubjectApi(Resource):
             this_subject["name"] = subject.name
             this_subject["description"] = subject.description
             this_subject["chapters"] = [
-                {'id': chapter.id, 'name': chapter.name} for chapter in subject.chapters
+                {'id': chapter.id, 'name': chapter.name, 'description':chapter.description} for chapter in subject.chapters
             ]
             subject_json.append(this_subject)
 
@@ -182,13 +178,17 @@ class QuizApi(Resource):
         quiz_json = []
         quizzes = Quiz.query.all()
         for quiz in quizzes:
+            chapter = Chapter.query.get(quiz.chapter_id)
+            subject = Subject.query.get(chapter.subject_id)
             this_quiz = {}
             this_quiz["id"] = quiz.id
             this_quiz["time"] = quiz.time
-            this_quiz["date"] = quiz.date
+            this_quiz["date"] = quiz.date.strftime('%Y-%m-%d') if quiz.date else None
             this_quiz["remarks"] = quiz.remarks
             this_quiz["chapter_id"] = quiz.chapter_id
-            [
+            this_quiz["chapter_name"] = chapter.name
+            this_quiz["subject_name"] = subject.name
+            this_quiz["questions"] = [
                 {'id': question.id, 'name': question.question} for question in quiz.questions
             ]
             quiz_json.append(this_quiz)
@@ -202,16 +202,17 @@ class QuizApi(Resource):
     @auth_required('token')
     @roles_required('admin')
     def post(self):
-        # args = parser.parse_args()
-        # date_value = datetime.strptime((args['date']), '%Y-%m-%d') if 'date' in args['date'] else datetime.now()
-        # time_value = datetime.strptime((args['time']), '%H:%M:%S').time() if 'time' in args['time'] else datetime.now().time()
+        args = parser.parse_args()
+        date_value = datetime.strptime(args.get('date'), '%Y-%m-%d') if args.get('date') else datetime.now()
+        time_value = int(args.get('time')) if args.get('time') else 1
+
         try:
             args = parser.parse_args()
             quiz = Quiz(#name = args["name"],
                               remarks = args["remarks"],
                               chapter_id = args['chapter_id'],
-                              #date = date_value,
-                              #time = time_value
+                              date = date_value,
+                              time = time_value
                               )
             db.session.add(quiz)
             db.session.commit()
@@ -226,20 +227,21 @@ class QuizApi(Resource):
     @auth_required('token')
     @roles_required('admin')    
     def put(self, quiz_id):
-        # args = parser.parse_args()
-        # date_value = datetime.strptime((args['date']), '%Y-%m-%d') if 'date' in args['date'] else datetime.now()
-        # time_value = datetime.strptime((args['time']), '%H:%M:%S').time() if 'time' in args['time'] else datetime.now().time()
+        args = parser.parse_args()
+        date_value = datetime.strptime(args.get('date'), '%Y-%m-%d') if args.get('date') else datetime.now()
+        time_value = int(args.get('time')) if args.get('time') else 1
         args = parser.parse_args()
         quiz = Quiz.query.get(quiz_id)
         #quiz.name = args['name']
         quiz.remarks = args['remarks']
         quiz.chapter_id = args['chapter_id']
-        #quiz.date = date_value,
-        #quiz.time = time_value
+        quiz.date = date_value
+        quiz.time = time_value
         db.session.commit()
         return{
             "message":"Quiz Updated Successfully!"
         }
+    
     @auth_required('token')
     @roles_required('admin') 
     def delete(self,quiz_id):

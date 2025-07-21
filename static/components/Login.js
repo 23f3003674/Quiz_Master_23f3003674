@@ -47,7 +47,14 @@ export default{
                 if(Object.keys(data).includes("Authentication-Token")){
                     localStorage.setItem("auth_token", data["Authentication-Token"])
                     localStorage.setItem("id", data.id)
-                    this.$router.push('/Dashboard')
+                    localStorage.setItem("username", data.username)
+                    localStorage.setItem("role", data.role);
+                    if(data.role.includes('user')){
+                        this.$router.push('/User_Dashboard')
+                    }
+                    else{
+                        this.$router.push('/Admin_Dashboard')
+                    }
                 }
                 else{
                     this.message = data.message

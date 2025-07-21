@@ -1,9 +1,15 @@
 export default{
     template:`
-    <div class ="row">
-        <h2> Welcome {{userData.username}}</h2>
-        <router-link :to="{name:'scores', params: {id: userData.id}}" class="btn btn-outline-danger">Scores</router-link>
-        <div class ="col-7 border" style="height:700px;">
+    <div class ="row border">
+        
+            <div class ="col-7 border">
+                <h2> Welcome {{userData.username}}</h2>
+            </div>
+            <div style="text-align:right;" class ="col-5 border">
+                <router-link v-if="userData && userData.id" :to="{name:'scores', params: {id: userData.id}}" class="btn btn-outline-primary">Scores</router-link>
+                <router-link to="/login" class="btn btn-outline-danger">Logout</router-link>
+            </div>
+            <div class ="col-7 border" style="height:700px;">
             
             <div class="container text-center">
                 <div>

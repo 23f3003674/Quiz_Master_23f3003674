@@ -185,9 +185,109 @@
     </form>
 </div>
 
-        <div border-bottom:3px> <h3>Quiz Details</h3></div>
-        <p><strong>Id:</strong> {{ quizdata.id }}</p>
-        <p><strong>Remarks:</strong> {{ quizdata.remarks }}</p>
-        <p><strong>Date:</strong> {{ quizdata.date }}</p>
-        <p><strong>Duration:</strong> {{ quizdata.time }} min</p>
-        <p><strong>No. of Ques:</strong>"number_of_ques"</p>
+<div>
+    <button class ="btn btn-success" @click="showpanel = { type: 'create-subject' }">Add Subject</button>
+</div>
+
+<div v-for ="sub in subjects": key="sub.id" class="card mb-3">
+    <div>
+        <h5>{{ subject.name }}</h5>
+         <small>{{ subject.description }}</small>
+        </div>
+        <div>
+            <button class="btn btn-outline-warning" @click="editsubject(subject)">Edit</button>
+            <button class="btn btn-outline-danger" @click="deletesubject(subject)">Delete</button>
+        </div>
+    </div>
+    <div class="card-body">
+        <h6>Chapters</h6>
+        <ul class="list-group mb-2">
+            <li v-for="chap in chapters": key="chapter.id"  class="list-group-item d-flex justify-content-between">
+                <div>
+                    <strong>{{chapter.name}}</strong><br>
+                    <small>{{chapter.description}}</small>
+                </div>
+                <div>
+                    <button class="btn btn-outline-warning" @click="editchapter(chapter, subject.id)">Edit</button>
+                    <button class="btn btn-outline-danger" @click="deletechapter(chapter)">Delete</button>
+                </div>
+            </li>
+        </ul>
+        <button class = "btn btn-outline-success" @click="showpanel ={ type: 'create-chapter', subject_id: subject.id}">Add chapter</button>
+    </div>
+</div>
+
+
+<div v-if="showpanel">
+    <h4 class="mb-3">{{paneltitle}}</h4>
+    <div v-if ="['create-subject','edit-subject'].includes(showpanel.type)">
+        <input v-model="newsubject.name" class ="form-control mb-2" placeholder="subject name" />
+        <input v-model="newsubject.description" class ="form-control mb-3" placeholder="subject description" />
+        <button class="btn btn-outline-success" @click ="submitsubject">{{showpanel.type ==='create-subject' ? 'Create':'Update'}}</button>
+    </div>
+    <div v-if ="['create-chapter','edit-chapter'].includes(showpanel.type)">
+        <input v-model="newchapter[showpanel.subject_id]?.name" class ="form-control mb-2" placeholder="chapter name" @focus="initchapter(showpanel.subject_id)"/>
+        <input v-model="newchapter[showpanel.subject_id]?.description" class ="form-control mb-3" placeholder="chapter description" />
+        <button class="btn btn-outline-success" @click ="submitsubject">{{showpanel.type ==='create-chapter' ? 'Create':'Update'}}</button>
+    </div>
+</div>
+<div v-else>
+    <p class="text-muted mt-5">Please Select an Action</p>
+</div>
+
+
+<div class ="col-7 border">
+    <h2> Welcome {{userData.username}}</h2>
+</div>
+<div style="text-align:right;" class ="col-5 border">
+    <router-link to="/login" class="btn btn-outline-danger">Logout</router-link>
+</div>
+<div class ="col-7 border" style="height:700px; overflow-y:auto;">
+    <div v-for ="sub in subjects" :key="sub.id" class="card mb-3">
+        <div class="card-header bg-primary text-white d-flex justify-content-between">
+            <div>
+                <h5>{{sub.name}}</h5>
+                <small>{{sub.description}}</small>
+                </div>
+                <div>
+                    <button class="btn btn-outline-warning btn-sm" @click="editsubject(sub)">Edit</button>
+                    <button class="btn btn-outline-danger btn-sm" @click="deletesubject(sub)">Delete</button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <h6>Chapters</h6>
+            <ul class="list-group mb-2">
+                <li v-for="chap in sub.chapters" :key="chap.id"  class="list-group-item d-flex justify-content-between">
+                    <div>
+                        <strong>{{chap.name}}</strong><br>
+                        <small>{{chap.description}}</small>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-warning" @click="editchapter(chap, sub.id)">Edit</button>
+                        <button class="btn btn-outline-danger" @click="deletechapter(chap)">Delete</button>
+                    </div>
+                </li>
+            </ul>
+            <button class = "btn btn-outline-success" @click="showpanel ={ type: 'create-chapter', subject_id: sub.id}">Add chapter</button>
+        </div>
+    </div>
+</div>
+<div class ="col-5 border" style = "height:700px;">
+    <div v-if="showpanel">
+        <h4 class="mb-3">{{paneltitle}}</h4>
+        <div v-if ="['create-subject','edit-subject'].includes(showpanel.type)">
+            <input v-model="newsubject.name" class ="form-control mb-2" placeholder="subject name" />
+            <input v-model="newsubject.description" class ="form-control mb-3" placeholder="subject description" />
+            <button class="btn btn-outline-success" @click ="submitsubject">{{showpanel.type ==='create-subject' ? 'Create':'Update'}}</button>
+        </div>
+        <div v-if ="['create-chapter','edit-chapter'].includes(showpanel.type)">
+            <input v-model="newchapter[showpanel.subject_id]?.name" class ="form-control mb-2" placeholder="chapter name" @focus="initchapter(showpanel.subject_id)"/>
+            <input v-model="newchapter[showpanel.subject_id]?.description" class ="form-control mb-3" placeholder="chapter description" />
+            <button class="btn btn-outline-success" @click ="submitchapter">{{showpanel.type ==='create-chapter' ? 'Create':'Update'}}</button>
+        </div>
+    </div>
+    <div v-else>
+        <p class="text-muted mt-5">Please Select an Action</p>
+    </div>
+</div>

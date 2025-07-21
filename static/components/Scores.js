@@ -1,7 +1,13 @@
 export default{
     template:`
-    <div class ="row">
-        <h2> Welcome {{userData.username}}</h2>
+    <div class ="row border">
+        <div class ="col-7 border">
+            <h2> Welcome {{userData.username}}</h2>
+        </div>
+        <div class ="col-5 border" style="text-align:right;">
+            <router-link to="/User_Dashboard" class="btn btn-outline-primary">Dashboard</router-link>
+            <router-link to="/login" class="btn btn-outline-danger">Logout</router-link>
+        </div>
         <div class ="border" style="height:700px;">
             
             <div class="container text-center">

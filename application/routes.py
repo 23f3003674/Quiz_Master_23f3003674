@@ -1,7 +1,8 @@
 from application.database import *
 from flask import current_app as app,jsonify,request,render_template
-from flask_security import auth_required, roles_required, current_user,hash_password,login_user
+from flask_security import auth_required, roles_required, current_user,hash_password,login_user,roles_accepted
 from werkzeug.security import check_password_hash,generate_password_hash
+from .utils import roles_list
 
 @app.route('/',methods = ['GET'])
 def home():
@@ -18,14 +19,15 @@ def admin_home():
 
 @app.route('/api/user')
 @auth_required('token')
-@roles_required('user')
+@roles_accepted('user','admin')
 def user_home():
     user = current_user
     return jsonify({
             'username': user.username,
             'email': user.email,
-            'password': user.password,
-            'id':user.id
+            'id':user.id,
+            'password':user.password
+            
     })
 
 @app.route('/api/login', methods = ['POST'])
@@ -50,7 +52,8 @@ def user_login():
             return jsonify({
                 "id": user.id,
                 "username": user.username,
-                "Authentication-Token": user.get_auth_token()
+                "Authentication-Token": user.get_auth_token(),
+                "role": [role.name for role in user.roles]
             })
         else:
             return jsonify({
