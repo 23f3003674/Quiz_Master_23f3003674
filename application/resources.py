@@ -2,8 +2,13 @@ from flask_restful import Api, Resource,reqparse
 from .models import *
 from flask_security import auth_required, roles_required,roles_accepted, current_user
 from datetime import datetime,timedelta
-from flask import jsonify
+from flask import jsonify,request
 from .utils import roles_list
+from pytz import timezone
+from .tasks import quiz_report
+from .cache_setup import cache
+
+
 
 api = Api()
 
@@ -15,18 +20,21 @@ parser.add_argument('chapter_id')
 parser.add_argument('remarks')
 parser.add_argument('date', type=str, required=False)
 parser.add_argument('time', type=str, required=False)
-parser.add_argument('question')
-parser.add_argument('answer')
-parser.add_argument('A')
-parser.add_argument('B')
-parser.add_argument('C')
-parser.add_argument('D')
-parser.add_argument('quiz_id')
-parser.add_argument('score')
+parser.add_argument('question', location='json')
+parser.add_argument('answer', location='json')
+parser.add_argument('A', location='json')
+parser.add_argument('B', location='json')
+parser.add_argument('C', location='json')
+parser.add_argument('D', location='json')
+parser.add_argument('quiz_id', location='json')
+parser.add_argument('score',location='json')
 parser.add_argument('user_id')
+parser.add_argument('query',location='json')
+parser.add_argument('type',location='json')
 
 
 class SubjectApi(Resource):
+    # @cache.cached(timeout=300, key_prefix='subjects_data')
     @auth_required('token')
     @roles_accepted('user','admin')
     def get(self):
@@ -98,6 +106,7 @@ api.add_resource(SubjectApi, '/api/subject/get','/api/subject/create','/api/subj
 
 
 class ChapterApi(Resource):
+    @cache.cached(timeout=5, key_prefix='chapters_data')
     @auth_required('token')
     @roles_accepted('user','admin')
     def get(self):
@@ -171,6 +180,7 @@ class ChapterApi(Resource):
 api.add_resource(ChapterApi, '/api/chapter/get','/api/chapter/create','/api/chapter/update/<int:chapter_id>','/api/chapter/delete/<int:chapter_id>')
 
 class QuizApi(Resource):
+    @cache.cached(timeout=5, key_prefix='quizzes_data')
     @auth_required('token')
     @roles_accepted('user','admin')
     def get(self):
@@ -189,7 +199,7 @@ class QuizApi(Resource):
             this_quiz["chapter_name"] = chapter.name
             this_quiz["subject_name"] = subject.name
             this_quiz["questions"] = [
-                {'id': question.id, 'name': question.question} for question in quiz.questions
+                {'id': question.id, 'question': question.question,'A':question.A, 'B':question.B, 'C': question.C, 'D': question.D, 'answer':question.answer} for question in quiz.questions
             ]
             quiz_json.append(this_quiz)
 
@@ -208,14 +218,14 @@ class QuizApi(Resource):
 
         try:
             args = parser.parse_args()
-            quiz = Quiz(#name = args["name"],
-                              remarks = args["remarks"],
+            quiz = Quiz(remarks = args["remarks"],
                               chapter_id = args['chapter_id'],
                               date = date_value,
                               time = time_value
                               )
             db.session.add(quiz)
             db.session.commit()
+            result = quiz_report.delay()
             return{
                 "message":"Quiz added successfully!!"
             }
@@ -232,12 +242,12 @@ class QuizApi(Resource):
         time_value = int(args.get('time')) if args.get('time') else 1
         args = parser.parse_args()
         quiz = Quiz.query.get(quiz_id)
-        #quiz.name = args['name']
         quiz.remarks = args['remarks']
         quiz.chapter_id = args['chapter_id']
         quiz.date = date_value
         quiz.time = time_value
         db.session.commit()
+        result = quiz_report.delay()
         return{
             "message":"Quiz Updated Successfully!"
         }
@@ -262,6 +272,7 @@ api.add_resource(QuizApi, '/api/quiz/get','/api/quiz/create','/api/quiz/update/<
 
 
 class QuestionApi(Resource):
+    @cache.cached(timeout=5, key_prefix='questions_data')
     @auth_required('token')
     @roles_accepted('user','admin')
     def get(self):
@@ -290,7 +301,7 @@ class QuestionApi(Resource):
         }, 404
     
     @auth_required('token')
-    @roles_required('admin')
+    @roles_accepted('user','admin')    
     def post(self):
         try:
             args = parser.parse_args()
@@ -304,6 +315,7 @@ class QuestionApi(Resource):
                                 )
             db.session.add(question)
             db.session.commit()
+            result = quiz_report.delay()
             return{
                 "message":"Question added successfully!!"
             }
@@ -325,9 +337,12 @@ class QuestionApi(Resource):
         question.answer = args['answer']
         question.quiz_id = args['quiz_id']
         db.session.commit()
+        result = quiz_report.delay()
         return{
             "message":"Question Updated Successfully!"
         }
+    
+
     @auth_required('token')
     @roles_required('admin') 
     def delete(self,question_id):
@@ -343,7 +358,7 @@ class QuestionApi(Resource):
                 "message":"Question Not Found!!"
             },404    
 
-api.add_resource(QuestionApi, '/api/question/get','/api/question/create','/api/question/update/<int:question_id>','/api/question/delete/<int:quiz_id>')
+api.add_resource(QuestionApi, '/api/question/get','/api/question/create','/api/question/update/<int:question_id>','/api/question/delete/<int:question_id>')
 
 class QuizviewApi(Resource):
     @auth_required('token')
@@ -351,8 +366,7 @@ class QuizviewApi(Resource):
     def get(self,quiz_id):
         quiz = Quiz.query.get(quiz_id)
         chapter_name = quiz.bearer.name
-        chap = Chapter.query.filter_by(name=chapter_name).first()
-        subject_name = chap.bearer.name
+        subject_name = quiz.bearer.bearer.name
         this_quiz = {}
         this_quiz["id"] = quiz.id
         this_quiz["remarks"] = quiz.remarks
@@ -361,7 +375,7 @@ class QuizviewApi(Resource):
         this_quiz["questions"] = [
                 {'id': question.id, 'name': question.question} for question in quiz.questions
             ]
-        this_quiz["date"] = quiz.date
+        this_quiz["date"] = quiz.date.strftime('%Y-%m-%d') if quiz.date else None
         this_quiz["time"] = quiz.time
         return this_quiz
     
@@ -401,14 +415,14 @@ class ScoreApi(Resource):
     @auth_required('token')
     @roles_accepted('user','admin')
     def post(self,quiz_id):
-        quiz_id = quiz_id
         user_id = current_user.id
+        current_time = datetime.now(timezone("Asia/Kolkata"))
         try:
             args = parser.parse_args()
             score = Score(score = args["score"],
                           quiz_id = quiz_id,
                           user_id = user_id,
-                          time_of_attempt = datetime.utcnow())
+                          time_of_attempt = current_time)
             db.session.add(score)
             db.session.commit()
             return{
@@ -422,6 +436,7 @@ class ScoreApi(Resource):
 api.add_resource(ScoreApi, '/api/score/post/<int:quiz_id>')
 
 class ScoreviewApi(Resource):
+    @cache.cached(timeout=5, key_prefix='score_data')
     @auth_required('token')
     @roles_accepted('user','admin')
     def get(self,user_id):
@@ -430,9 +445,9 @@ class ScoreviewApi(Resource):
         for score in scores:
             quiz_id = score.quiz_id
             quiz = Quiz.query.get(quiz_id)
-            chapter_name = quiz.bearer.name
+            chapter_name = quiz.bearer.name if quiz and quiz.bearer else "Chapter Removed"
             chap = Chapter.query.filter_by(name=chapter_name).first()
-            subject_name = chap.bearer.name
+            subject_name = chap.bearer.name if chap and chap.bearer else "Subject Removed"
             all_scores.append({
                 'id':score.id,
                 'quiz_id':score.quiz_id,
@@ -445,4 +460,37 @@ class ScoreviewApi(Resource):
         return all_scores
 api.add_resource(ScoreviewApi, '/api/scoreview/get/<int:user_id>')
 
+class UsersviewApi(Resource):
+    @cache.cached(timeout=5, key_prefix='subjects_data')
+    @auth_required('token')
+    @roles_accepted('user','admin')
+    def get(self):
+        users = User.query.all()
+        all_users =[]
+        for user in users:
+            all_users.append({
+                'id':user.id,
+                'username':user.username,
+                'email':user.email,
+                'dob':user.dob,
+                'qualification': user.qualification
+            })   
+        return all_users
+api.add_resource(UsersviewApi, '/api/userview/get')
 
+class UsersdeleteApi(Resource):
+    @auth_required('token')
+    @roles_accepted('user','admin')
+    def delete(self,user_id):
+        user = User.query.get(user_id)
+        if user:
+            db.session.delete(user)
+            db.session.commit()
+            return{
+                "message":"User deleted!!"
+            }
+        else:
+            return{
+                "message":"error"
+            },400
+api.add_resource(UsersdeleteApi,'/api/userdelete/delete/<int:user_id>')

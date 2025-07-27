@@ -7,11 +7,11 @@ export default{
                 <h2 class="text-danger">{{message}}</h2>
                     <div class="mb-3">
                         <label for="email" class="form-label">Enter Email:</label>
-                        <input type="email" class="form-control" id="email" v-model="formData.email" placeholder="name@example.com">
+                        <input type="email" class="form-control" id="email" v-model="formData.email" placeholder="name@example.com" required>
                     </div>
                     <div class="mb-3">
                         <label for="pass" class="form-label">Enter Password</label>
-                        <input type="password" class="form-control" id="pass" v-model="formData.password">
+                        <input type="password" class="form-control" id="pass" v-model="formData.password" required>
                     </div>
                 
                 <div class ="text-center">

@@ -291,3 +291,169 @@
         <p class="text-muted mt-5">Please Select an Action</p>
     </div>
 </div>
+
+
+
+<div class="row border">
+
+    <div class="col-7 border">
+        <h2>Welcome {{ userData.username }}</h2>
+
+        <div class="text-end mb-3">
+            <button class="btn btn-success" @click="showpanel = { type: 'create-quiz' }">Add Quiz</button>
+        </div>
+
+        <div style="height:700px; overflow-y:auto;">
+            <div v-for="quiz in quizzes" :key="quiz.id" class="card mb-3">
+            
+                <div class="card-header bg-info text-white d-flex justify-content-between">
+                    <div>
+                        <h5>{{ quiz.remarks }}</h5>
+                        <small>
+                            Subject: {{ quiz.subject_name }} |
+                            Chapter: {{ quiz.chapter_name }}
+                        </small>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-warning btn-sm" @click="editquiz(quiz)">Edit</button>
+                        <button class="btn btn-outline-danger btn-sm" @click="deletequiz(quiz.id)">Delete</button>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <p><strong>Date:</strong> {{ quiz.date || 'TBA' }}</p>
+                    <p><strong>Duration:</strong> {{ quiz.time }} minutes</p>
+                    <p><strong>Total Questions:</strong> {{ quiz.questions.length }}</p>
+                    <ul class="list-group mb-2">
+                    <li v-for="q in quiz.questions" :key="q.id" class="list-group-item d-flex justify-content-between">
+                        <div>
+                        <strong>Q{{ q.id }}:</strong> {{ q.name }}
+                        </div>
+                        <div>
+                        <button class="btn btn-outline-warning btn-sm" @click="editquestion(q, quiz.id)">Edit</button>
+                        <button class="btn btn-outline-danger btn-sm" @click="deletequestion(q.id)">Delete</button>
+                        </div>
+                    </li>
+                    </ul>
+                    <button class="btn btn-outline-success btn-sm" @click="showpanel = { type: 'create-question', quiz_id: quiz.id }">Add Question</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-5 border" style="height:700px;">
+        <div v-if="showpanel">
+            <h4 class="mb-3">{{ paneltitle }}</h4>
+
+            <div v-if="['create-quiz','edit-quiz'].includes(showpanel.type)">
+                <input v-model="newquiz.remarks" class="form-control mb-2" placeholder="Quiz Remarks" />
+                <select v-model="newquiz.chapter_id" class="form-control mb-2">
+                    <option disabled value="">Select Chapter</option>
+                    <optgroup v-for="sub in subjects" :key="sub.id" :label="sub.name">
+                    <option v-for="chap in sub.chapters" :key="chap.id" :value="chap.id">
+                        {{ chap.name }}
+                    </option>
+                    </optgroup>
+                </select>
+                <input v-model="newquiz.date" type="date" class="form-control mb-2" />
+                <input v-model.number="newquiz.time" type="number" class="form-control mb-3" placeholder="Duration (minutes)" min="1" />
+                <button class="btn btn-outline-success" @click="submitquiz">{{ showpanel.type === 'create-quiz' ? 'Create' : 'Update' }}</button>
+            </div>
+
+            <div v-if="['create-question','edit-question'].includes(showpanel.type)">
+                <input v-model="newquestion[showpanel.quiz_id]?.question" class="form-control mb-2" placeholder="Question Text" @focus="initquestion(showpanel.quiz_id)" />
+                <input v-model="newquestion[showpanel.quiz_id]?.A" class="form-control mb-2" placeholder="Option A" />
+                <input v-model="newquestion[showpanel.quiz_id]?.B" class="form-control mb-2" placeholder="Option B" />
+                <input v-model="newquestion[showpanel.quiz_id]?.C" class="form-control mb-2" placeholder="Option C" />
+                <input v-model="newquestion[showpanel.quiz_id]?.D" class="form-control mb-2" placeholder="Option D" />
+                <input v-model="newquestion[showpanel.quiz_id]?.answer" class="form-control mb-3" placeholder="Correct Answer (A/B/C/D)" />
+                <button class="btn btn-outline-success" @click="submitquestion">{{ showpanel.type === 'create-question' ? 'Create' : 'Update' }}</button>
+            </div>
+        </div>
+        <div v-else>
+            <p class="text-muted mt-5">Please Select an Action</p>
+        </div>
+    </div>
+</div>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Quiz Id</th>
+            <th scope="col">Subject</th>
+            <th scope="col">Chapter</th>
+            <th scope="col">Attempt At Date-Time</th>
+            <th scope="col">Score</th>
+        </tr>
+   </thead>
+   <tbody>
+        <tr v-for="s in scores" class="text-center">
+            <th scope="row">{{s.id}}</th>
+            <td>{{s.quiz_id}}</td>
+            <td>{{s.subject}}</td>
+            <td>{{s.chapter}}</td>
+            <td>{{s.score}}</td>
+        </tr>
+   </tbody>
+</table>
+
+
+<div class="container text-center">
+                <div>
+                    <h2>Quiz Scores</h2>
+                </div>
+                <B><div class="row text-center">
+                    <div class="col">
+                        Id
+                    </div>
+                    <div class="col">
+                        Quiz Id
+                    </div>
+                    <div class="col">
+                        Subject
+                    </div>
+                    <div class="col">
+                        Chapter
+                    </div>
+                    <div class="col">
+                        Quiz Date-Time 
+                    </div>
+                    <div class="col">
+                        SCORE 
+                    </div>
+                </div></B>
+            </div>
+            <div v-for="s in scores" class="text-center">
+                <div class="row">
+                    <div class="col">
+                        {{s.id}}
+                    </div>
+                    <div class="col">
+                        {{s.quiz_id}}
+                    </div>
+                    <div class="col">
+                        {{s.subject}}
+                    </div>
+                    <div class="col">
+                        {{s.chapter}} min
+                    </div>
+                    <div class="col">
+                        {{s.time_of_attempt}}
+                    </div>
+                    <div class="col">
+                        {{s.score}}
+                    </div>
+                </div>
+            </div>
+
+
+
+                            <select v-model="searchtype">
+                    <option disabled value="">Select Type</option>
+                    <option value="user">User</option>
+                    <option value="subjects">Subjects</option>
+                    <option value="quizzes">Quizzes</option>
+                </select>
+                <input v-model="searchquery" placeholder="search"@keyup.enter="search"/>
+                <button @click="search">Search</button>

@@ -2,31 +2,45 @@ export default{
     template:`
     <div>
         <div class ="row border">
-            <div class ="col-7 border">
+            <div class ="col-7">
                 <h2> Welcome {{userData.username}}</h2>
             </div>
-            <div style="text-align:right;" class ="col-5 border">
+            <div style="text-align:right;" class ="col-5">
+                <button @click="csvExport" class ="btn btn-outline-secondary">Download CSV</button>
                 <button class="btn btn-outline-success" @click ="showpanel ={ type: 'create-subject'}">Add Subject</button>
                 <router-link to="/Admin_Quiz_dashboard" class="btn btn-outline-primary">Quiz</router-link>
-                <router-link to="/login" class="btn btn-outline-danger">Logout</router-link>
+                <router-link to="/Users" class="btn btn-outline-warning">Users</router-link>
+                <router-link to="/" class="btn btn-outline-danger">Logout</router-link>
     
             </div>
             <div class ="col-7 border" style="height:700px; overflow-y:auto;">
-                
+                <div v-if="searched && searchresult.length">
+                    <h4>Search Results:</h4>
+                    <ul>
+                        <li v-for="item in searchresult" :key="item.id">{{ item.name || item.chapter_name || 'Unnamed result' }}</li>
+                    </ul>
+                </div>
+
+                <div style="text-align:center;">
+                    <h2>Subjects & Chapters</h2>
+                </div>
                 <div v-for ="sub in subjects" :key="sub.id" class="card mb-3">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between">
+                    <div class="card-header bg-info text-white d-flex justify-content-between">
                         <div>
                             <h5><b>{{sub.name}}</b></h5>
                             <small>{{sub.description}}</small>
                         </div>
                         <div>
-                            <button class="btn btn-outline-warning btn-sm" @click="editsubject(sub)">Edit</button>
-                            <button class="btn btn-outline-danger btn-sm" @click="deletesubject(sub)">Delete</button>
+                            <button class="btn btn-warning btn-sm" @click="editsubject(sub)">Edit</button>
+                            <button class="btn btn-danger btn-sm" @click="deletesubject(sub)">Delete</button>
                         </div>
                     </div>
                     <div class="card-body">
                         <h6>Chapters</h6>
                         <ul class="list-group mb-2">
+                            <div v-if="sub.chapters.length === 0" class="text-muted">
+                                No Chapter !!!
+                            </div>
                             <li v-for="chap in sub.chapters" :key="chap.id"  class="list-group-item d-flex justify-content-between">
                                 <div>
                                     <strong>{{chap.name}}</strong><br>
@@ -56,9 +70,6 @@ export default{
                         <button class="btn btn-outline-success" @click ="submitchapter">{{showpanel.type ==='create-chapter' ? 'Create':'Update'}}</button>
                     </div>
                 </div>
-                <div v-else>
-                    <p class="text-muted mt-5">Please Select an Action</p>
-                </div>
             </div>
         </div>
     </div>
@@ -70,7 +81,11 @@ export default{
             subjects:[],
             newsubject:{name:"",description:""},
             newchapter:{},
-            showpanel: null
+            showpanel: null,
+            searchtype:"",
+            searchquery:"",
+            searchresult:"",
+            searched:false
 
             }
         }, 
@@ -102,8 +117,16 @@ export default{
                     "Authentication-Token":localStorage.getItem("auth_token")
                 }
             })
-            .then(response=> response.json())
-            .then(data => this.subjects = data)
+            .then(response => {
+                if (!response.ok) {return [];}
+                return response.json();
+            })
+            .then(data => this.subjects = Array.isArray(data) ? data : [])
+            .catch(err => {
+                console.error('Fetch subject failed:', err);
+                this.subjects = [];
+            })
+
         },
 
         createsubject(){
@@ -118,7 +141,7 @@ export default{
             .then(() => {
                 this.newsubject = {name: "", description:""};
                 this.showpanel = null;
-                this.fetchsubject();
+                setTimeout(() => this.fetchsubject(), 30);
             })
         },
 
@@ -235,9 +258,35 @@ export default{
                 "Content-Type":"application/json",
                 "Authentication-Token":localStorage.getItem("auth_token")}
             }).then(() => this.fetchsubject());
+        },
+        csvExport(){
+            fetch('/api/export')
+            .then(response => response.json())
+            .then(data => {
+                window.location.href =`/api/csv_result/${data.id}`
+            })
         }
 
+        // search(){
+        //     fetch('/api/search',{
+        //         method: "POST",
+        //         headers:{
+        //             "Content-Type":"application/json",
+        //             "Authentication-Token":localStorage.getItem("auth_token")
+        //         },
+        //         body: JSON.stringify({
+        //             type: this.searchtype,
+        //             query: this.searchquery
+        //         })
+        //     }).then(response => response.json())
+        //     .then(data => {
+        //         this.searchresult = data;
+        //         this.searched = true;
+        //     })
+        // }
     },
+
+
 
     mounted(){
         fetch('/api/user',{

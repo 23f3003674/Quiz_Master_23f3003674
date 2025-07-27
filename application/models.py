@@ -15,6 +15,7 @@ class User(db.Model, UserMixin):
     dob = db.Column(db.String)
     active = db.Column(db.Boolean, nullable = False)
     roles = db.relationship('Role', backref = 'bearer', secondary = 'user_roles')
+    scores = db.relationship('Score', backref='user', cascade="all, delete-orphan")
 
 class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer, primary_key = True)
@@ -38,7 +39,7 @@ class Chapter(db.Model):
     description = db.Column(db.String)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable = False)
     quizzes = db.relationship('Quiz', backref ='bearer',cascade='all, delete-orphan')
-
+    
 
 class Quiz(db.Model):
     id = db.Column(db.Integer, primary_key = True) 
@@ -47,6 +48,7 @@ class Quiz(db.Model):
     date = db.Column(db.DateTime)
     time = db.Column(db.Integer)
     questions = db.relationship('Question', backref ='bearer',cascade='all, delete-orphan')
+    scores = db.relationship('Score', backref='quiz')
 
 
 class Question(db.Model):

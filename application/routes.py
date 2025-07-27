@@ -1,8 +1,10 @@
 from application.database import *
-from flask import current_app as app,jsonify,request,render_template
+from flask import current_app as app,jsonify,request,render_template,send_from_directory
 from flask_security import auth_required, roles_required, current_user,hash_password,login_user,roles_accepted
 from werkzeug.security import check_password_hash,generate_password_hash
 from .utils import roles_list
+from celery.result import AsyncResult
+from .tasks import csv_report,monthly_report
 
 @app.route('/',methods = ['GET'])
 def home():
@@ -83,3 +85,22 @@ def create_user():
         "message":"User already exists!!!"
     }), 400
 
+@app.route('/api/export') # manually triggers the job
+def export_csv():
+    result = csv_report.delay() # return async object
+    return jsonify({
+        "id": result.id,
+        "result": result.result,
+    })
+
+@app.route('/api/csv_result/<id>') # created to test status of result
+def csv_result(id):
+    res = AsyncResult(id)
+    return send_from_directory('static', res.result)
+
+@app.route('/api/mail')
+def send_report():
+    res = monthly_report.delay()
+    return {
+        "result": res.result
+    }
