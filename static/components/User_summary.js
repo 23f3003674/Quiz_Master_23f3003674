@@ -57,7 +57,6 @@ export default {
       const labels = Object.keys(subjectCount);
       const values = Object.values(subjectCount);
       const colors = labels.map((_, i) => `hsl(${i * 50}, 65%, 60%)`);
-
       new Chart(this.$refs.donutChart.getContext('2d'), {
         type: 'doughnut',
         data: {
@@ -83,7 +82,6 @@ export default {
     renderBarChart() {
       const labels = this.scores.map(entry => `Quiz ${entry.quiz_id}`);
       const values = this.scores.map(entry => entry.score);
-
       new Chart(this.$refs.barChart.getContext('2d'), {
         type: 'bar',
         data: {
