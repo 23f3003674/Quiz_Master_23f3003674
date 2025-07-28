@@ -8,6 +8,8 @@ import Admin_Dashboard from './components/Admin_Dashboard.js'
 import Scores from './components/Scores.js'
 import Admin_Quiz_dashboard from './components/Admin_Quiz_dashboard.js'
 import Users from './components/Users.js'
+import User_summary from './components/User_summary.js'
+import Admin_summary from './components/Admin_summary.js'
 
 
 
@@ -19,7 +21,9 @@ const routes =[
     {path: '/Admin_Dashboard',component: Admin_Dashboard},
     {path: '/scores/:id', name:'scores',component:Scores},
     {path: '/Admin_Quiz_dashboard',component: Admin_Quiz_dashboard},
-    {path: '/Users', component: Users}
+    {path: '/Users', component: Users},
+    {path: '/User_summary',name:'user_summary', component: User_summary},
+    {path: '/Admin_summary',name:'admin_summary', component: Admin_summary}
 
 ]
 

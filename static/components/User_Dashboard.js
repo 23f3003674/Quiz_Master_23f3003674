@@ -5,18 +5,23 @@ export default{
         <div class ="col-7">
             <h2> Welcome {{userData.username}}</h2>
         </div>
-        <div style="text-align:right;" class ="col-5">
-            <router-link v-if="userData && userData.id" :to="{name:'scores', params: {id: userData.id}}" class="btn btn-outline-primary">Scores</router-link>
-            <router-link to="/" class="btn btn-outline-danger">Logout</router-link>
+        <div style="text-align:right;" class ="col-5 d-flex">
+            <input v-model="searchquery" class="form-control" placeholder="Search" />
+            <button class="btn btn-outline-success btn-sm" @click="quizsearch">Search</button>
+            <router-link v-if="userData && userData.id" :to="{name:'scores', params: {id: userData.id}}" class="btn btn-outline-primary btn-sm">Scores</router-link>
+            <router-link v-if="userData && userData.id" :to="{name:'user_summary', params: {id: userData.id}}" class="btn btn-outline-secondary btn-sm">Summary</router-link>
+            <router-link to="/" class="btn btn-outline-danger btn-sm">Logout</router-link>
         </div>
         <div class ="col-7 border" style="text-align:center; height:700px;">
-            <div>
-                <h2>ALL Quizzes</h2>
+            <div style="text-align:center;">
+                    <h2 v-if="!searched">All Quizzes</h2>
+                    <h2 v-else>Searched Quizzes</h2>
             </div>
             <table class="table table-hover">
                 <thead>
                     <tr>
                     <th scope="col">ID</th>
+                    <th scope="col">Subject</th>
                     <th scope="col">Chapter</th>
                     <th scope="col">Scheduled Date</th>
                     <th scope="col">Duration</th>
@@ -26,6 +31,7 @@ export default{
                 <tbody>
                     <tr v-for="q in quiz" class="text-center">
                     <th scope="row">{{q.id}}</th>
+                    <td>{{q.subject_name}}</td>
                     <td>{{q.chapter_name}}</td>
                     <td>{{q.date}}</td>
                     <td>{{q.time}} Min</td>
@@ -86,8 +92,10 @@ export default{
             timer: null,
             activequiz:null,
             currentIndex:0,
-            showdetails:false
-
+            showdetails:false,
+            searchquery:"",
+            searchresult:"",
+            searched:false
             }
         },
     computed:{
@@ -223,6 +231,46 @@ export default{
         quizdate(dateString){
             const today = new Date(Date.now() + 19800000).toISOString().split('T')[0];
             return dateString === today;
+        },
+
+        quizsearch(){
+            const query = this.searchquery.trim();
+            if (!query) {
+                this.searched = false;
+                this.quiz = null;
+                fetch('/api/quiz/get',{
+                    method:'GET',
+                    headers:{
+                        "Content-Type":"application/json",
+                        "Authentication-Token":localStorage.getItem("auth_token")
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {this.quiz = data})
+                return;
+            }
+
+            fetch('/api/quizsearch/post', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authentication-Token": localStorage.getItem("auth_token")
+                },
+                body: JSON.stringify({query})
+            })
+            .then(response => {
+                if (!response.ok) return [];
+                return response.json();
+            })
+            .then(data => {
+                this.quiz = Array.isArray(data) ? data : [];
+                this.searched = true;
+            })
+            .catch(err => {
+                console.error('Quiz search failed:', err);
+                this.quiz = [];
+                this.searched = true;
+            });
         }
     },
 

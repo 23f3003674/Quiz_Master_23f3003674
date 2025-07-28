@@ -7,15 +7,18 @@ export default{
                 <h2>Welcome {{ userData.username }}</h2>
             </div>
             <div class="col-5">
-                <div style="text-align:right;">
-                    <button class="btn btn-outline-success" @click="showpanel = { type: 'create-quiz' }">Add Quiz</button>
-                    <router-link to="/Admin_Dashboard" class="btn btn-outline-primary">Dashboard</router-link>
-                    <router-link to="/" class="btn btn-outline-danger">Logout</router-link>
+                <div style="text-align:right;" class="d-flex">
+                    <input v-model="searchquery" class="form-control" placeholder="Search" />
+                    <button class="btn btn-outline-primary btn-sm" @click="quizsearch">Search</button>
+                    <button class="btn btn-outline-success btn-sm" @click="showpanel = { type: 'create-quiz' }">Add Quiz</button>
+                    <router-link to="/Admin_Dashboard" class="btn btn-outline-secondary btn-sm">Dashboard</router-link>
+                    <router-link to="/" class="btn btn-outline-danger btn-sm">Logout</router-link>
                 </div>
             </div>
             <div class="col-7 border" style="height:700px; overflow-y:auto;">
                 <div style="text-align:center;">
-                    <h2>Quizzes</h2>
+                    <h2 v-if="!searched">All Quizzes</h2>
+                    <h2 v-else>Searched Quizzes</h2>
                 </div>
                 <div v-if="quizzes.length === 0" class="text-muted text-center">
                     No quizzes available!!!
@@ -98,7 +101,10 @@ export default{
         quizzes:[],
         newquiz:{remarks:"",chapter_id:"",date:"",time:1},
         newquestion:{},
-        showpanel:null
+        showpanel:null,
+        searchquery:"",
+        searchresult:"",
+        searched:false
     }
    },
    computed:{
@@ -273,6 +279,34 @@ export default{
                     "Authentication-Token":localStorage.getItem("auth_token")
             }
         }).then(() => {this.fetchquizzes();})
+    },
+
+    quizsearch(){
+        const query = this.searchquery.trim();
+        if(!query){
+            this.searched = false;
+            this.quizzes = [];
+            this.fetchquizzes();
+            return;
+        }
+        fetch('/api/quizsearch/post',{
+            method:"POST",
+                headers:{
+                    "Content-Type":"application/json",
+                    "Authentication-Token":localStorage.getItem("auth_token")},
+                body: JSON.stringify({query}),
+        }).then(response => {
+            if(!response.ok)
+                return [];
+            return response.json();
+        }).then(data => {
+            this.quizzes = Array.isArray(data) ? data : [];
+            this.searched = true;
+        }).catch(err => {
+        console.error('Search quiz failed:', err);
+        this.quizzes = [];
+        this.searched = true;
+        });
     }
     
    },

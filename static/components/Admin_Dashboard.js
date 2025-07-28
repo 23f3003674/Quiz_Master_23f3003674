@@ -5,12 +5,15 @@ export default{
             <div class ="col-7">
                 <h2> Welcome {{userData.username}}</h2>
             </div>
-            <div style="text-align:right;" class ="col-5">
-                <button @click="csvExport" class ="btn btn-outline-secondary">Download CSV</button>
-                <button class="btn btn-outline-success" @click ="showpanel ={ type: 'create-subject'}">Add Subject</button>
-                <router-link to="/Admin_Quiz_dashboard" class="btn btn-outline-primary">Quiz</router-link>
-                <router-link to="/Users" class="btn btn-outline-warning">Users</router-link>
-                <router-link to="/" class="btn btn-outline-danger">Logout</router-link>
+            <div class ="col-5 d-flex">
+                <input v-model="searchquery" class="form-control" placeholder="Search" />
+                <button class="btn btn-outline-primary btn-sm" @click="subjectsearch">Search</button>
+                <button class="btn btn-outline-success btn-sm" @click ="showpanel ={ type: 'create-subject'}">Add Subject</button>
+                <button @click="csvExport" class ="btn btn-outline-secondary btn-sm">Download CSV</button>
+                <router-link to="/Admin_Quiz_dashboard" class="btn btn-outline-primary btn-sm">Quiz</router-link>
+                <router-link to="/Users" class="btn btn-outline-warning btn-sm">Users</router-link>
+                <router-link v-if="userData && userData.id" :to="{name:'admin_summary', params: {id: userData.id}}" class="btn btn-outline-secondary btn-sm">Summary</router-link>
+                <router-link to="/" class="btn btn-outline-danger btn-sm">Logout</router-link>
     
             </div>
             <div class ="col-7 border" style="height:700px; overflow-y:auto;">
@@ -22,8 +25,10 @@ export default{
                 </div>
 
                 <div style="text-align:center;">
-                    <h2>Subjects & Chapters</h2>
+                    <h2 v-if="!searched">Subjects & Chapters</h2>
+                    <h2 v-else>Searched Subjects & Chapters</h2>
                 </div>
+
                 <div v-for ="sub in subjects" :key="sub.id" class="card mb-3">
                     <div class="card-header bg-info text-white d-flex justify-content-between">
                         <div>
@@ -82,7 +87,6 @@ export default{
             newsubject:{name:"",description:""},
             newchapter:{},
             showpanel: null,
-            searchtype:"",
             searchquery:"",
             searchresult:"",
             searched:false
@@ -265,25 +269,37 @@ export default{
             .then(data => {
                 window.location.href =`/api/csv_result/${data.id}`
             })
+        },
+
+        subjectsearch(){
+            const query = this.searchquery.trim();
+            if(!query){
+                this.searched = false;
+                this.searchresult = [];
+                this.fetchsubject();
+                return;
+            }
+            fetch('api/adminsubjectsearch/post',{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json",
+                    "Authentication-Token":localStorage.getItem("auth_token")},
+                body: JSON.stringify({query})
+            }).then(response =>{
+                if(!response.ok) 
+                    return [];
+                return response.json();
+            }).then(data =>{
+                this.subjects = Array.isArray(data) ? data : [];
+                this.searched = true;
+            }).catch(err => {
+                console.error('Search subject failed:', err);
+                this.subjects = [];
+                this.searched = true;
+            });
         }
 
-        // search(){
-        //     fetch('/api/search',{
-        //         method: "POST",
-        //         headers:{
-        //             "Content-Type":"application/json",
-        //             "Authentication-Token":localStorage.getItem("auth_token")
-        //         },
-        //         body: JSON.stringify({
-        //             type: this.searchtype,
-        //             query: this.searchquery
-        //         })
-        //     }).then(response => response.json())
-        //     .then(data => {
-        //         this.searchresult = data;
-        //         this.searched = true;
-        //     })
-        // }
+      
     },
 
 

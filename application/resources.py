@@ -29,8 +29,8 @@ parser.add_argument('D', location='json')
 parser.add_argument('quiz_id', location='json')
 parser.add_argument('score',location='json')
 parser.add_argument('user_id')
-parser.add_argument('query',location='json')
-parser.add_argument('type',location='json')
+parser.add_argument('query', location='json')
+
 
 
 class SubjectApi(Resource):
@@ -460,6 +460,32 @@ class ScoreviewApi(Resource):
         return all_scores
 api.add_resource(ScoreviewApi, '/api/scoreview/get/<int:user_id>')
 
+
+class AdminscoreviewApi(Resource):
+    @cache.cached(timeout=5, key_prefix='score_data')
+    @auth_required('token')
+    @roles_accepted('user','admin')
+    def get(self):
+        scores = Score.query.all()
+        all_scores =[]
+        for score in scores:
+            quiz_id = score.quiz_id
+            quiz = Quiz.query.get(quiz_id)
+            chapter_name = quiz.bearer.name if quiz and quiz.bearer else "Chapter Removed"
+            chap = Chapter.query.filter_by(name=chapter_name).first()
+            subject_name = chap.bearer.name if chap and chap.bearer else "Subject Removed"
+            all_scores.append({
+                'id':score.id,
+                'quiz_id':score.quiz_id,
+                'user_id':score.user_id,
+                'score':score.score,
+                'time_of_attempt':score.time_of_attempt.strftime('%Y-%m-%d %H:%M'),
+                'chapter':chapter_name,
+                'subject': subject_name
+            })
+        return all_scores
+api.add_resource(AdminscoreviewApi, '/api/adminscoreview/get')
+
 class UsersviewApi(Resource):
     @cache.cached(timeout=5, key_prefix='subjects_data')
     @auth_required('token')
@@ -494,3 +520,108 @@ class UsersdeleteApi(Resource):
                 "message":"error"
             },400
 api.add_resource(UsersdeleteApi,'/api/userdelete/delete/<int:user_id>')
+
+class Adminsubjectseacrh(Resource):
+    @auth_required('token')
+    @roles_accepted('user','admin')
+    def post(self):
+        args = parser.parse_args()
+        quer = args['query'].lower()
+        subject_json = []
+        subjects = Subject.query.all()
+
+        for subject in subjects:
+            match_in_subject = quer in subject.name.lower()
+            matched_chapters = []
+
+            for chapter in subject.chapters:
+                if quer in chapter.name.lower():
+                    matched_chapters.append({
+                        'id': chapter.id,
+                        'name': chapter.name,
+                        'description': chapter.description
+                    })
+
+            if match_in_subject or matched_chapters:
+                subject_data = {
+                    'id': subject.id,
+                    'name': subject.name,
+                    'description': subject.description,
+                    'chapters': matched_chapters if matched_chapters else [
+                        {'id': c.id, 'name': c.name, 'description': c.description}
+                        for c in subject.chapters
+                    ]
+                }
+                subject_json.append(subject_data)
+
+        if subject_json:
+            return subject_json, 200
+        return {"message": "No such subject or chapter found!!"}, 404
+
+    
+api.add_resource(Adminsubjectseacrh,'/api/adminsubjectsearch/post')
+
+class Quizsearch(Resource):
+    @auth_required('token')
+    @roles_accepted('user','admin')
+    def post(self):
+        args = parser.parse_args()
+        quer = args['query'].lower()
+        quiz_json =[]
+        quizzes = Quiz.query.all()
+        for quiz in quizzes:
+            chapter = Chapter.query.get(quiz.chapter_id)
+            subject = Subject.query.get(chapter.subject_id)
+            if quer in chapter.name.lower() or quer in subject.name.lower():
+                this_quiz = {
+                    "id": quiz.id,
+                    "time": quiz.time,
+                    "date": quiz.date.strftime('%Y-%m-%d') if quiz.date else None,
+                    "remarks": quiz.remarks,
+                    "chapter_id": quiz.chapter_id,
+                    "chapter_name": chapter.name,
+                    "subject_name": subject.name,
+                    "questions": [
+                        {
+                            "id": q.id,
+                            "question": q.question,
+                            "A": q.A,
+                            "B": q.B,
+                            "C": q.C,
+                            "D": q.D,
+                            "answer": q.answer
+                        } for q in quiz.questions
+                    ]
+                }
+                quiz_json.append(this_quiz)
+        if quiz_json:
+            return quiz_json, 200
+        return{"message": "No such Quiz found!!"},400
+api.add_resource(Quizsearch,'/api/quizsearch/post')
+
+class Adminusersearch(Resource):
+    @auth_required('token')
+    @roles_accepted('user','admin')
+    def post(self):
+        args = parser.parse_args()
+        quer = args['query'].lower()
+        user_json = []
+        users = User.query.all()
+        for user in users:
+            if quer in user.username.lower() or quer in user.email.lower():
+                user_data = {
+                    'id':user.id,
+                    'username':user.username,
+                    'email':user.email,
+                    'dob':user.dob,
+                    'qualification': user.qualification
+                }
+                user_json.append(user_data)
+        if user_json:
+            return user_json,200
+        return {"message":"No such user found!!"},404
+    
+api.add_resource(Adminusersearch,'/api/adminusersearch/post')
+
+ 
+                

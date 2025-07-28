@@ -4,13 +4,16 @@ export default{
         <div class ="col-7">
             <h2> Welcome {{userData.username}}</h2>
         </div>
-        <div class ="col-5" style="text-align:right;">
-            <router-link to="/Admin_Dashboard" class="btn btn-outline-primary">Dashboard</router-link>
-            <router-link to="/" class="btn btn-outline-danger">Logout</router-link>
+        <div class ="col-5 d-flex" style="text-align:right;">
+            <input v-model="searchquery" class="form-control" placeholder="Search" />
+            <button class="btn btn-outline-success btn-sm" @click="usersearch">Search</button>
+            <router-link to="/Admin_Dashboard" class="btn btn-outline-primary btn-sm">Dashboard</router-link>
+            <router-link to="/" class="btn btn-outline-danger btn-sm">Logout</router-link>
         </div>
         <div class ="border" style="height:700px; text-align:center; overflow-y:auto;">
-            <div>
-                <h2>All Users</h2>
+            <div style="text-align:center;">
+                <h2 v-if="!searched">ALL USERS</h2>
+                <h2 v-else>Searched User</h2>
             </div>
             <table class="table table-hover">
                 <thead>
@@ -42,7 +45,10 @@ export default{
     data: function(){
         return{
             userData:"",
-            users:[]
+            users:[],
+            searchquery:"",
+            searchresult:"",
+            searched:false
         }
     },
     methods:{
@@ -73,8 +79,35 @@ export default{
                 }
             })
             .then(() => this.getusers());
-        }
-        
+        },
+
+        usersearch() {
+            const query = this.searchquery.trim();
+            if (!query) {
+                this.searched = false;
+                this.users = [];
+                this.getusers();
+                return;
+            }
+            fetch('/api/adminusersearch/post', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authentication-Token": localStorage.getItem("auth_token")
+                },
+                body: JSON.stringify({query})
+            }).then(response => {
+                if (!response.ok) return [];
+                return response.json();
+            }).then(data => {
+                this.users = Array.isArray(data) ? data : [];
+                this.searched = true;
+            }).catch(err => {
+                console.error('Search user failed:', err);
+                this.users = [];
+                this.searched = true;});
+            }
+
         
 
         
