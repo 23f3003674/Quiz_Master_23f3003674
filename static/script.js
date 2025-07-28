@@ -11,8 +11,6 @@ import Users from './components/Users.js'
 import User_summary from './components/User_summary.js'
 import Admin_summary from './components/Admin_summary.js'
 
-
-
 const routes =[
     {path: '/',component: Home},
     {path: '/login',component: Login},
