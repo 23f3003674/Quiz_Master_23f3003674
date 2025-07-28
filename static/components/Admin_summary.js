@@ -8,7 +8,6 @@ export default {
         <router-link to="/Admin_Dashboard" class="btn btn-outline-primary me-2">Dashboard</router-link>
         <router-link to="/" class="btn btn-outline-danger">Logout</router-link>
       </div>
-
       <div class="border mt-4 p-3" style="height:700px; overflow-y:auto;">
         <div class="row">
           <div class="col-md-6 text-center">
@@ -68,11 +67,9 @@ export default {
         const subject = entry.subject || "Unknown";
         subjectCounts[subject] = (subjectCounts[subject] || 0) + 1;
       });
-
       const labels = Object.keys(subjectCounts);
       const values = Object.values(subjectCounts);
       const colors = labels.map((_, i) => `hsl(${i * 45}, 70%, 60%)`);
-
       new Chart(this.$refs.donutChart.getContext('2d'), {
         type: 'doughnut',
         data: {
