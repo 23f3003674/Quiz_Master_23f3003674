@@ -44,11 +44,6 @@ with app.app_context():
                                           password = generate_password_hash("admin"),
                                           roles = ["admin"])
         
-    if not app.security.datastore.find_user(email = "user@gmail.com"):
-        app.security.datastore.create_user(email = "user@gmail.com",
-                                          username ="user01",
-                                          password = generate_password_hash("1234"),
-                                          roles = ["user"])
     db.session.commit()
 
 from application.routes import *
