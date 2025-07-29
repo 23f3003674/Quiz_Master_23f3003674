@@ -445,6 +445,7 @@ class ScoreviewApi(Resource):
         for score in scores:
             quiz_id = score.quiz_id
             quiz = Quiz.query.get(quiz_id)
+            total_ques = len(quiz.questions)
             chapter_name = quiz.bearer.name if quiz and quiz.bearer else "Chapter Removed"
             chap = Chapter.query.filter_by(name=chapter_name).first()
             subject_name = chap.bearer.name if chap and chap.bearer else "Subject Removed"
@@ -455,7 +456,8 @@ class ScoreviewApi(Resource):
                 'score':score.score,
                 'time_of_attempt':score.time_of_attempt.strftime('%Y-%m-%d %H:%M'),
                 'chapter':chapter_name,
-                'subject': subject_name
+                'subject': subject_name,
+                'total_ques':total_ques
             })
         return all_scores
 api.add_resource(ScoreviewApi, '/api/scoreview/get/<int:user_id>')

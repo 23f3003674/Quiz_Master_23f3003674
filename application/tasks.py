@@ -1,5 +1,5 @@
 from celery import shared_task
-from .models import User,Quiz,Score
+from .models import User,Quiz,Score,Chapter
 import datetime
 import csv
 from .utils import format_report
@@ -32,12 +32,20 @@ def monthly_report():
         user_data["email"] = user.email
         user_scores = []
         for s in user.scores:
+            quiz = Quiz.query.get(s.quiz_id)
+            chapter_name = quiz.bearer.name if quiz and quiz.bearer else "Chapter Removed"
+            chap = Chapter.query.filter_by(name=chapter_name).first()
+            subject_name = chap.bearer.name if chap and chap.bearer else "Subject Removed"
+            total_ques = len(quiz.questions)  
             this_score = {}
             this_score["id"] = s.id
             this_score["score"] = s.score
+            this_score["max_score"] = total_ques
             this_score["quiz_id"] = s.quiz_id
             this_score["user_id"] = s.user_id
             this_score["time_of_attempt"] = s.time_of_attempt
+            this_score["subject"] = subject_name
+            this_score["chapter"] = chapter_name
             user_scores.append(this_score) 
         user_data['user_scores'] = user_scores
         message = format_report('templates/mail_details.html', user_data)

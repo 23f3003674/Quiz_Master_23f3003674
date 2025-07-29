@@ -19,10 +19,12 @@
                 <thead>
                     <tr>
                         <th scope="col">Sr No</th>
+                        <th scope="col">Quiz Id</th>
+                        <th scope="col">Subject</th>
+                        <th scope="col">Chapter</th>
                         <th scope="col">Score Id</th>
                         <th scope="col">Score</th>
-                        <th scope="col">Quiz Id</th>
-                        <th scope="col">User Id</th>
+                        <th scope="col">Max Score</th>
                         <th scope="col">Time of Attempt</th>
                     </tr>
                 </thead>
@@ -31,10 +33,12 @@
                     {% for t in data['user_scores'] %}
                     <tr>
                         <th scope="row">{{loop.index}}</th>
+                        <td>{{t['quiz_id']}}</td>
+                        <td>{{t['subject']}}</td>
+                        <td>{{t['chapter']}}</td>
                         <td>{{t['id']}}</td>
                         <td>{{t['score']}}</td>
-                        <td>{{t['quiz_id']}}</td>
-                        <td>{{t['user_id']}}</td>
+                        <td>{{t['max_score']}}</td>
                         <td>{{t['time_of_attempt']}}</td>
                     </tr>
                     {% endfor %}

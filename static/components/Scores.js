@@ -30,7 +30,7 @@ export default{
                         <td>{{s.subject}}</td>
                         <td>{{s.chapter}}</td>
                         <td>{{s.time_of_attempt}}</td>
-                        <td>{{s.score}}</td>
+                        <td>{{s.score}}/{{s.total_ques}}</td>
                     </tr>
             </tbody>
             </table>
