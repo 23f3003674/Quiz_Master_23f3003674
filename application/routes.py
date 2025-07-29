@@ -10,14 +10,6 @@ from .tasks import csv_report,monthly_report
 def home():
     return render_template("index.html")
 
-@app.route('/api/admin')
-@auth_required('token') # authentication
-@roles_required('admin') # RBAC/ authorization
-def admin_home():
-    return jsonify({
-        "message":"this is admin homepage"
-    })
-
 
 @app.route('/api/user')
 @auth_required('token')
